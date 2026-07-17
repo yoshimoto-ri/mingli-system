@@ -1,0 +1,22 @@
+# 私人設定(內含你的 Webhook 網址,絕對不要上傳)
+config.json
+**/config.json
+
+# Python 快取
+__pycache__/
+*.pyc
+*.pyo
+
+# 打包產物
+*.skill
+*.zip
+/out/
+
+# 系統檔案
+.DS_Store
+Thumbs.db
+
+# 編輯器
+.vscode/
+.idea/
+*.swp

@@ -1,0 +1,4 @@
+{
+  "webhook_url": "https://script.google.com/macros/s/你的部署ID/exec",
+  "_說明": "複製此檔為 config.json(同目錄),填入你自己部署的 Apps Script 網址。config.json 已被 .gitignore 排除,不會上傳到 GitHub。"
+}
