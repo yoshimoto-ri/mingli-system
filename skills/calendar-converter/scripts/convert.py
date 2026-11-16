@@ -9,6 +9,8 @@
 用法:
   python3 convert.py --date "1990-08-15 23:15" --tz "Asia/Taipei" --lon 121.56
   可選: --no-tst 不做真太陽時校正(僅DST)
+        --lat 出生地緯度(提供時加算上升星座交界)
+  輸出含「邊界對照」:八字年/月界、紫微年/月界、時辰界、太陽/上升換座的距離與警示
 輸出: JSON
 """
 import argparse, json, math, sys, subprocess
@@ -27,6 +29,10 @@ def _ensure(pkg, mod):
         raise
 
 _ensure("lunar-python", "lunar_python")
+_ensure("pyswisseph", "swisseph")
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from boundaries import boundary_table
 from lunar_python import Solar
 try:
     from zoneinfo import ZoneInfo
@@ -61,6 +67,7 @@ def main():
     ap.add_argument("--tz", required=True, help='IANA 時區, 如 Asia/Taipei')
     ap.add_argument("--lon", type=float, default=None, help="出生地經度(東經正/西經負)")
     ap.add_argument("--no-tst", action="store_true", help="不做真太陽時校正")
+    ap.add_argument("--lat", type=float, default=None, help="出生地緯度(選填,用於上升星座交界)")
     a = ap.parse_args()
 
     local = datetime.strptime(a.date, "%Y-%m-%d %H:%M").replace(tzinfo=ZoneInfo(a.tz))
@@ -100,6 +107,8 @@ def main():
         "節氣": lun.getPrevJieQi(True).getName() + "後",
         "生肖": {"鼠":"鼠","牛":"牛","虎":"虎","兔":"兔","龙":"龍","蛇":"蛇","马":"馬","羊":"羊","猴":"猴","鸡":"雞","狗":"狗","猪":"豬"}.get(lun.getYearShengXiao(), lun.getYearShengXiao()),
     }
+    out["邊界對照"] = boundary_table(local.replace(tzinfo=None), a.tz,
+                                    tst=None if a.no_tst else tst, lat=a.lat, lon=a.lon)
     print(json.dumps(out, ensure_ascii=False, indent=1))
 
 if __name__ == "__main__":
