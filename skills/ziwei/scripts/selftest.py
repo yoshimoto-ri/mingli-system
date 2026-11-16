@@ -25,9 +25,11 @@ fails += not ok
 print(("OK  " if ok else "FAIL"), "臘月小寒前流月干支須為癸丑:", r["運限"]["流月"]["干支"])
 r = run("1963-08-15 22:30", "男", ("--flying",))
 fl = r["欽天飛化層"]
-ok = fl["來因宮"] == "田宅(亥)" and "命宮(申) 自化科(太陰)" in fl["自化"] and "財帛(辰) 自化祿(天同)" in fl["自化"]
+ok = (fl["來因宮"] == "田宅(亥)" and "命宮(申) 離心自化科(太陰)" in fl["自化"]
+      and "財帛(辰) 離心自化祿(天同)" in fl["自化"]
+      and any(c.startswith("遷移(寅) → 夫妻(午)[沖官祿] → 命宮(申) → 財帛(辰)") for c in fl["忌轉忌"]["鏈"]))
 fails += not ok
-print(("OK  " if ok else "FAIL"), "欽天飛化層:來因宮田宅(亥)、命宮自化科、財帛自化祿", fl["來因宮"], fl["自化"])
+print(("OK  " if ok else "FAIL"), "欽天飛化層:來因宮、離心自化、忌轉忌三層", fl["來因宮"], fl["自化"])
 N = int(sys.argv[1]) if len(sys.argv) > 1 else 60
 random.seed(7)
 for _ in range(N):
