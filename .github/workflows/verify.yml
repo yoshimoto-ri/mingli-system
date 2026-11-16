@@ -1,0 +1,65 @@
+name: 命理系統驗證
+
+on:
+  workflow_dispatch:
+    inputs:
+      start:
+        description: "曆法驗證起始年"
+        default: "1937"
+      end:
+        description: "曆法驗證結束年"
+        default: "2026"
+      hko:
+        description: "比對香港天文台對照表"
+        type: boolean
+        default: true
+      ziwei_n:
+        description: "紫微隨機回歸盤數"
+        default: "60"
+  pull_request:
+    paths:
+      - "skills/**"
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 安裝套件
+        run: pip install lunar-python pyswisseph py-iztro
+
+      - name: 曆法驗證(春節/立春/春分)
+        run: |
+          HKO=""
+          if [ "${{ github.event_name }}" != "pull_request" ] && [ "${{ inputs.hko }}" = "true" ]; then HKO="--hko"; fi
+          python skills/calendar-converter/scripts/verify_calendar.py \
+            --start "${{ inputs.start || '1937' }}" --end "${{ inputs.end || '2026' }}" \
+            $HKO --csv calendar_check.csv | tee calendar_log.txt
+
+      - name: 紫微排盤回歸測試(雙引擎交叉驗證)
+        if: always()
+        run: python skills/ziwei/scripts/selftest.py "${{ inputs.ziwei_n || '60' }}" | tee ziwei_log.txt
+
+      - name: 結果摘要
+        if: always()
+        run: |
+          {
+            echo "## 曆法驗證"; echo '```'; cat calendar_log.txt 2>/dev/null; echo '```'
+            echo "## 紫微回歸測試"; echo '```'; tail -8 ziwei_log.txt 2>/dev/null; echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 上傳逐年明細
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: 驗證結果
+          path: |
+            calendar_check.csv
+            calendar_log.txt
+            ziwei_log.txt
