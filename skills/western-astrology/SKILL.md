@@ -19,6 +19,14 @@ python3 scripts/natal.py --date "1990-08-15 23:15" --tz Asia/Taipei --lat 25.04 
 python3 scripts/natal.py --electional "2026-06-20 10:00" --tz Asia/Taipei --lat 25.04 --lon 121.56
 ```
 
+年度行運 / 流年流月應期(**必跑,禁止每月取樣估算**):
+```bash
+python3 scripts/transits.py --date "1990-08-15 23:15" --tz Asia/Taipei --lat 25.04 --lon 121.56 --year 2027
+```
+- 輸出:逆行表(含水金火前後陰影期)、精準相位日期(行運火木土天海冥 → 本命日月五星/ASC/MC)、換座換宮、日月食(落宮與觸及本命點)、年度小限與年主星
+- **流月判斷必須先列行星順逆**(尤其水星、金星、火星),再看相位;逆行與陰影期內的簽約、轉帳、啟動新事要特別標註
+- 引用日期一律用輸出的精確時刻,不自行推算
+
 ## 解讀
 - 行星/宮位/星座/古典尊貴/靈魂占星 → `references/interpretation.md`
 - 擇日占星細則(月相配事、VOC、逆行) → `references/electional.md`
