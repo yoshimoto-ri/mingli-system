@@ -41,6 +41,7 @@ except ImportError:
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import ziwei_rules as R
+import flying as FLY
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SCHOOL_PATH = os.path.join(HERE, "..", "school.json")
@@ -217,6 +218,7 @@ def main():
     ap.add_argument("--months", type=int, help="輸出該農曆年正月~臘月流月表(例 2027 = 丁未年)")
     ap.add_argument("--chart-date", help="已校正之排盤陽曆日 YYYY-MM-DD")
     ap.add_argument("--time-index", type=int, help="已校正之時辰索引 0-12")
+    ap.add_argument("--flying", action="store_true", help="加輸出欽天飛化層(宮干飛化、自化、來因宮)")
     args = ap.parse_args()
 
     sc = load_school()
@@ -250,6 +252,9 @@ def main():
     ming_idx = next(i for i, n in enumerate(ch.natal_names) if n == "命宮")
 
     # ---------- 全年流月表 ----------
+    if args.flying:
+        out["欽天飛化層"] = FLY.build(ch, vf["生年干支"][0], sc)
+
     if args.months:
         ly = LunarYear.fromYear(args.months)
         yg, yz = ly.getGanZhi()[0], ly.getGanZhi()[1]
