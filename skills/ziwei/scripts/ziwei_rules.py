@@ -6,7 +6,7 @@
   2. 流月干支校正:五虎遁 + 農曆月(引擎以節氣月取干,與農曆月宮位口徑不一致)
   3. 斗君/流月命宮驗證
 所有索引一律以「寅=0」起算(與 py-iztro 宮位索引一致)。
-規則依《紫微斗數全書》通行安法;門派差異以 school.json 覆寫。
+安星依通行安法;四化等門派差異以 school.json 覆寫。
 """
 from lunar_python.util import LunarUtil
 
@@ -20,7 +20,7 @@ def bi(branch):          # 地支 → 寅=0 索引
 def chong(i):            # 對宮(沖)
     return (i + 6) % 12
 
-# 十干四化(祿權科忌)——《全書》通行表,與 py-iztro default 相同;門派差異由 school.json 覆寫
+# 十干四化(祿權科忌)——《全集》版(= py-iztro 內建 = 欽天門);中州派王亭之版的戊/庚/壬化科由 school.json 覆寫
 SIHUA_DEFAULT = {
     "甲": ["廉貞", "破軍", "武曲", "太陽"],
     "乙": ["天機", "天梁", "紫微", "太陰"],
