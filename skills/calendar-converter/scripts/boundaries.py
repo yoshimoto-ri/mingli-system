@@ -178,13 +178,45 @@ def boundary_table(local_dt, tz, tst=None, lat=None, lon=None):
     if min(md, 30 - md) < 1:
         notes.append(f"月亮在{SIGNS[int(m//30)]}{md:.1f}°,接近換座(月亮約每 2 小時移 1°)")
 
-    # 口徑差異:八字年 vs 紫微年
-    ec_y = lun.getEightChar().getYear()
-    zw_y = lun.getYearInGanZhi()
-    if ec_y != zw_y:
-        notes.append(f"出生落在立春與春節之間:八字年柱 {ec_y}、紫微生年 {zw_y}。屬正常口徑差異,兩系統各用各的,不可混用")
-    flagged = [r for r in rows if r["狀態"] != "安全"]
-    summary = "全部安全" if not flagged else "、".join(f"{r['系統']}{r['邊界']}({r['狀態']})" for r in flagged)
+    # ---------- 系統落差區間(與出生時間精度無關) ----------
+    # 年:立春 vs 春節。兩者每年相差 0~約 20 天,落在中間 = 八字與紫微生年不同
+    ec = lun.getEightChar()
+    ec_y, zw_y = ec.getYear(), lun.getYearInGanZhi()
+    gy = local_dt.year
+    j_lc = sun_cross(315, swe.julday(gy, 1, 20), +1)
+    lc_d = _dt(j_lc, tz)
+    cny = Lunar.fromYmd(gy, 1, 1).getSolar()
+    cny_d = datetime(cny.getYear(), cny.getMonth(), cny.getDay())
+    first, second = (("立春", lc_d.replace(tzinfo=None)), ("春節", cny_d))
+    if cny_d < lc_d.replace(tzinfo=None):
+        first, second = ("春節", cny_d), ("立春", lc_d.replace(tzinfo=None))
+    gap_days = (second[1].date() - first[1].date()).days
+    inside = ec_y != zw_y
+    rows.append({"系統": "八字×紫微", "邊界": "年界落差區間",
+                 "前一界": f"{first[0]} {first[1].strftime('%Y-%m-%d %H:%M' if first[0]=='立春' else '%Y-%m-%d')}",
+                 "後一界": f"{second[0]} {second[1].strftime('%Y-%m-%d %H:%M' if second[0]=='立春' else '%Y-%m-%d')}",
+                 "距最近邊界": f"{gy} 年兩界相差 {gap_days} 天;出生{'在' if inside else '不在'}區間內",
+                 "狀態": "口徑差異" if inside else "一致",
+                 "影響": f"八字年柱 {ec_y} / 紫微生年 {zw_y}" + ("(不同:各用各的,不可為一致而改)" if inside else "(相同)")})
+    # 月:節 vs 合朔。每個月都有一段落差,屬結構性差異,列為資訊
+    bz_m = ec.getMonth()
+    lm = abs(lun.getMonth())
+    lm_branch = "寅卯辰巳午未申酉戌亥子丑"[lm - 1]
+    same_m = bz_m[1] == lm_branch
+    rows.append({"系統": "八字×紫微", "邊界": "月份口徑",
+                 "前一界": "", "後一界": "",
+                 "距最近邊界": f"八字月柱 {bz_m}(依節) / 紫微農曆{'閏' if lun.getMonth() < 0 else ''}{lun.getMonthInChinese()}月(依朔)",
+                 "狀態": "一致" if same_m else "口徑差異",
+                 "影響": "八字月令看節氣、紫微安星看農曆月,兩者本來就錯開半個月左右,屬正常" if not same_m else "兩系統月份相同"})
+    if inside:
+        notes.append(f"出生落在{first[0]}與{second[0]}之間:八字年柱 {ec_y}、紫微生年 {zw_y}。屬正常口徑差異,兩系統各用各的,不可混用;生肖也會因口徑不同而不同")
+
+    risk = [r for r in rows if r["狀態"] in ("警示", "注意")]
+    diff = [r for r in rows if r["狀態"] == "口徑差異"]
+    summary = {"時間精度風險": "無" if not risk else "、".join(f"{r['系統']}{r['邊界']}({r['狀態']})" for r in risk),
+               "系統口徑差異": "無" if not diff else "、".join(f"{r['系統']}{r['邊界']}" for r in diff)}
     return {"主軸": f"出生時刻 UTC {u.strftime('%Y-%m-%d %H:%M')}(各系統邊界皆由此推算)",
             "摘要": summary, "對照表": rows, "口徑提示": notes or ["無"],
-            "判讀原則": "警示=出生時間誤差或門派口徑可能讓該系統換柱/換宮,須確認或兩案並看;注意=交接期,論命可參酌前後氣;安全=遠離邊界"}
+            "判讀原則": ("兩種不同的問題分開看。"
+                         "【時間精度風險】警示/注意/安全:出生時刻離某系統切點多近——越近,出生時間只要有一點誤差,該系統就會換柱/換宮,須確認時間或兩案並看。"
+                         "【系統口徑差異】口徑差異/一致:出生落在兩系統切點之間(如立春與春節之間)——與時間誤差無關,兩系統本來就給出不同年/月,各用各的,不可為求一致而改")}
