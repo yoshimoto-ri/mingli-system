@@ -218,7 +218,8 @@ def main():
     ap.add_argument("--months", type=int, help="輸出該農曆年正月~臘月流月表(例 2027 = 丁未年)")
     ap.add_argument("--chart-date", help="已校正之排盤陽曆日 YYYY-MM-DD")
     ap.add_argument("--time-index", type=int, help="已校正之時辰索引 0-12")
-    ap.add_argument("--flying", action="store_true", help="加輸出欽天飛化層(宮干飛化、自化、來因宮)")
+    ap.add_argument("--flying", action="store_true", help="加輸出欽天飛化層(宮干飛化、自化、來因宮、忌轉忌)")
+    ap.add_argument("--ji-depth", type=int, default=None, help="忌轉忌追蹤層數(預設依 school.json,3 層)")
     args = ap.parse_args()
 
     sc = load_school()
@@ -253,7 +254,7 @@ def main():
 
     # ---------- 全年流月表 ----------
     if args.flying:
-        out["欽天飛化層"] = FLY.build(ch, vf["生年干支"][0], sc)
+        out["欽天飛化層"] = FLY.build(ch, vf["生年干支"][0], sc, args.ji_depth)
 
     if args.months:
         ly = LunarYear.fromYear(args.months)
