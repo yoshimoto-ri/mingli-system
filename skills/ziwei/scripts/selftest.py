@@ -30,6 +30,15 @@ ok = (fl["來因宮"] == "田宅(亥)" and "命宮(申) 離心自化科(太陰)"
       and any(c == "遷移(寅) → 夫妻(午)[沖官祿](結束:忌沖我宮(官祿))" for c in fl["忌轉忌"]["鏈"]))
 fails += not ok
 print(("OK  " if ok else "FAIL"), "欽天飛化層:來因宮、離心自化、忌轉忌三層", fl["來因宮"], fl["自化"])
+r = run("1963-08-15 22:30", "男", ("--flying", "--target", "2027-06-15"))
+y = r["欽天飛化層"]["運限"]
+ok = y["流年"]["宮干"] == "己" and y["流日"]["流日宮"] == "財帛(辰)"
+fails += not ok
+print(("OK  " if ok else "FAIL"), "欽天運限:流年用宮干(未宮己)、流日初一進一格(五月十一→財帛辰)", y["流年"]["宮干"], y["流日"]["流日宮"])
+r = run("1990-08-15 23:15", "女", ("--flying",))
+ok = "不換日" in r["欽天飛化層"]["排盤口徑"] and r["排盤基準"]["陽曆"] == "1990-08-16"
+fails += not ok
+print(("OK  " if ok else "FAIL"), "夜子時:中州層換日、飛化層不換日", r["欽天飛化層"]["排盤口徑"])
 N = int(sys.argv[1]) if len(sys.argv) > 1 else 60
 random.seed(7)
 for _ in range(N):

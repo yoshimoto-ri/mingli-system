@@ -253,8 +253,20 @@ def main():
     ming_idx = next(i for i, n in enumerate(ch.natal_names) if n == "命宮")
 
     # ---------- 全年流月表 ----------
+    # ---------- 欽天飛化層:夜子(真太陽時23-24點)不換日,另排一盤(書頁23) ----------
+    fly_ch, fly_vf, fly_note = ch, vf, "與中州層同一張盤"
+    if args.flying and meta.get("子時換日"):
+        same_day = meta["真太陽時"][:10]
+        r_fly = a.by_solar(same_day, 0, args.gender, True, "zh-TW")
+        fly_ch, fly_vf = Chart(r_fly), verify(r_fly, same_day, 0, sc)
+        fly_note = f"夜子時不換日:另以 {same_day} 子時排盤(中州層已換日為 {cd})"
     if args.flying:
-        out["欽天飛化層"] = FLY.build(ch, vf["生年干支"][0], sc, args.ji_depth)
+        fly = FLY.build(fly_ch, fly_vf["生年干支"][0], sc, args.ji_depth)
+        fly["排盤口徑"] = fly_note
+        if fly_ch is not ch:
+            fly["交叉驗證"] = fly_vf["結果"] + (f":{fly_vf['差異']}" if fly_vf["差異"] else "")
+        fly["原典規則"] = FLY.book_rules(fly_ch, fly_vf["生年干支"][0], sc, fly)
+        out["欽天飛化層"] = fly
 
     if args.months:
         ly = LunarYear.fromYear(args.months)
@@ -292,12 +304,25 @@ def main():
                     "流月四化": ch.sihua(tbl[ms], {"本": ch.natal_names, "年": year_names, "月": mnames}),
                     "宮位核對": "一致" if eh.monthly.index == pidx else f"引擎={R.BR[eh.monthly.index]},以規則為準",
                 })
+        fly_months = None
+        if args.flying:
+            fly_months = []
+            fming = fly_ch.natal_names.index("命宮")
+            fdj = R.dou_jun_first_month(yb, fming)
+            for row in rows:
+                em_row = "正二三四五六七八九十冬臘".index(row["農曆月"].lstrip("閏")[0]) + 1
+                m = (fdj + em_row - 1) % 12
+                blk = FLY.year_palace_flight(fly_ch, m, sc, "流月")
+                fly_months.append({"農曆月": row["農曆月"], **blk})
         out = {"口徑": sc, "排盤基準": out["排盤基準"], "交叉驗證": vf,
                "流年": {"干支": yg + yz, "流年命宮": f"{yz}(本命{ch.natal_names[yb]})",
                         "斗君(正月)": R.BR[dj],
                         "流年四化": ch.sihua(tbl[yg], {"本": ch.natal_names, "限": dec_names, "年": year_names}),
                         "流年流曜": flow_stars(h.yearly.stars)},
                "流月表": rows,
+               **({"欽天飛化層": {**out["欽天飛化層"],
+                                 "流年": FLY.year_palace_flight(fly_ch, yb, sc, "流年"),
+                                 "流月表": fly_months}} if args.flying else {}),
                "說明": "流月干支=五虎遁(流年干)+農曆月;流月命宮=斗君起正月順行。閏月依 school.json『閏月』規則。"}
         print(json.dumps(out, ensure_ascii=False, indent=1)); return
 
@@ -351,6 +376,9 @@ def main():
         "地支": R.BR[i], "本命": ch.natal_names[i], "大限": dec_names[i], "流年": year_names[i], "流月": mon_names[i],
         "流曜": [k for k, v in {**fd, **fy}.items() if v == R.BR[i]],
     } for i in range(12)]
+    if args.flying:
+        out["欽天飛化層"]["運限"] = FLY.yunxian(fly_ch, fly_vf["生年干支"][0], sc, ty_zhi, em,
+                                              lun_t.getDay(), lun_t.getYear() - by + 1)
     out["說明"] = "地支索引一律寅起;『坐』=四化星所在宮,『沖』=對宮。本/限/年/月/日 = 本命/大限/流年/流月/流日宮名。"
     print(json.dumps(out, ensure_ascii=False, indent=1))
 
