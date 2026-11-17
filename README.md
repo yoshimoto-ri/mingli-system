@@ -95,3 +95,18 @@ MIT License，詳見 [LICENSE](LICENSE)。
 ## 致謝
 
 參考了 [Wolke/bazi-mingli](https://github.com/Wolke/bazi-mingli) 的八字十神體系設計，以及 [FANzR-arch/Numerologist_skills](https://github.com/FANzR-arch/Numerologist_skills) 的資料收集追問邏輯。
+
+## 三台電腦同步與打包(Chromebook / Mac / Windows)
+
+GitHub 是唯一主版本。任何一台改完就 push,換到另一台先 pull 再動工。
+
+| 動作 | Chromebook / Mac(終端機) | Windows(PowerShell) |
+|---|---|---|
+| 第一次下載 | `git clone https://github.com/yoshimoto-ri/mingli-system.git` | 同左,另執行 `git config core.autocrlf true` |
+| 同步最新版 | `git pull` | `git pull` |
+| 推上修改 | `git pull` → `git add -A` → `git commit -m "說明"` → `git push` | 同左 |
+| 打包 skill | `./tools/package.sh`(或加 skill 名稱) | `.\tools\package.ps1`(或加 skill 名稱) |
+
+- 打包結果在 `dist/`,每個 skill 一個 zip,用 claude.ai 的「取代」上傳。
+- **`skills/mingli-master/config.json` 存放存檔網址,只放在 Chromebook / Mac 本機,不進 GitHub、不放 Windows。**
+  打包腳本會自動帶入;缺少時會跳過 mingli-master,避免上傳後存檔功能失效。
