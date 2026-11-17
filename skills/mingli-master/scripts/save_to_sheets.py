@@ -33,7 +33,7 @@ def main():
     a = ap.parse_args()
     url = a.url or find_url()
     if not url:
-        print(json.dumps({"ok": False, "error": "未設定 WEBHOOK_URL(SKILL.md 或 --url)"}, ensure_ascii=False)); sys.exit(1)
+        print(json.dumps({"ok": False, "error": "找不到存檔網址。請確認以下任一來源:(1) skill 資料夾內的 config.json(打包前放入,不進 GitHub);(2) 執行時加 --url;(3) SKILL.md 的 WEBHOOK_URL 行"}, ensure_ascii=False)); sys.exit(1)
     data = json.dumps(json.loads(a.json), ensure_ascii=False).encode("utf-8")
     req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"}, method="POST")
     try:

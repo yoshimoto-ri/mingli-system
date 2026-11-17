@@ -108,7 +108,7 @@ def main():
     jd = jd_of(dt, a.tz)
     cusps_p, ascmc = swe.houses(jd, a.lat, a.lon, b'P')
     asc_txt, asc_sign = fmt(ascmc[0]); mc_txt, _ = fmt(ascmc[1])
-    cusps = list(cusps_p) if a.house == "P" else [asc_sign*30 + i*30 for i in range(12)]
+    cusps = list(cusps_p) if a.house == "P" else [((asc_sign + i) * 30) % 360 for i in range(12)]
 
     plist, lons = [], {}
     for n, pid in PLANETS:

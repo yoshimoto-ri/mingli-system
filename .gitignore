@@ -21,3 +21,6 @@ Thumbs.db
 .idea/
 *.swp
 .hko_cache/
+
+# 打包輸出
+/dist/
